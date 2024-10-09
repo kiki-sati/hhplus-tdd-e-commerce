@@ -1,13 +1,13 @@
-package com.hhp.commerce;
+package com.hhp.ecommerce;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CommerceApplication {
+public class EcommerceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CommerceApplication.class, args);
+		SpringApplication.run(EcommerceApplication.class, args);
 	}
 
 }
