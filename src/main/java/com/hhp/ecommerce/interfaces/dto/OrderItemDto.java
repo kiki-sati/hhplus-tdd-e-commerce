@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductResponse {
-	private String productId;
-	private String name;
-	private int price;
-	private int stock;
+public class OrderItemDto {
+	private String productId;  // 상품 ID
+	private int quantity;      // 주문할 수량
 }

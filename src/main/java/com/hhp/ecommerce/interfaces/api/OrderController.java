@@ -15,15 +15,20 @@ import com.hhp.ecommerce.interfaces.dto.OrderResponse;
 @RequestMapping("/order")
 public class OrderController {
 
-    @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest request) {
-        int totalPrice = request.getItems().stream()
-                .mapToInt(item -> item.getQuantity() * 1000)
-                .sum();
+	@PostMapping
+	public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest request) {
+		// Mock 데이터로 주문 정보 생성
+		int totalPrice = request.getItems().stream()
+			.mapToInt(item -> item.getQuantity() * 1000)  // Mock 가격 1000원/상품 적용
+			.sum();
 
-        UUID orderId = UUID.randomUUID();
-
-        OrderResponse response = new OrderResponse(orderId, request.getUserId(), totalPrice, "SUCCESS");
-        return ResponseEntity.ok(response);
-    }
+		// 주문 결과를 응답
+		OrderResponse response = new OrderResponse(
+			UUID.randomUUID().toString(),
+			request.getUserId(),
+			totalPrice,
+			"SUCCESS"
+		);
+		return ResponseEntity.ok(response);
+	}
 }
