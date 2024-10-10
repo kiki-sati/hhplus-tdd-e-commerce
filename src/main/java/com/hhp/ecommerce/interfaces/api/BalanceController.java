@@ -1,7 +1,4 @@
 package com.hhp.ecommerce.interfaces.api;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,22 +15,17 @@ import com.hhp.ecommerce.interfaces.dto.BalanceResponse;
 @RequestMapping("/balance")
 public class BalanceController {
 
-    private static final Map<UUID, Integer> MOCK_BALANCE_DB = new HashMap<>();
+	// 잔액 충전 API
+	@PostMapping("/charge")
+	public ResponseEntity<BalanceResponse> chargeBalance(@RequestBody BalanceRequest request) {
+		BalanceResponse response = new BalanceResponse(request.getUserId(), request.getAmount() + 1000);
+		return ResponseEntity.ok(response);
+	}
 
-    @PostMapping("/charge")
-    public ResponseEntity<BalanceResponse> chargeBalance(@RequestBody BalanceRequest request) {
-        UUID userId = request.getUserId();
-        int newBalance = MOCK_BALANCE_DB.getOrDefault(userId, 0) + request.getAmount();
-        MOCK_BALANCE_DB.put(userId, newBalance);
-
-        BalanceResponse response = new BalanceResponse(userId, newBalance);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<BalanceResponse> getBalance(@RequestParam UUID userId) {
-        int balance = MOCK_BALANCE_DB.getOrDefault(userId, 0);
-        BalanceResponse response = new BalanceResponse(userId, balance);
-        return ResponseEntity.ok(response);
-    }
+	// 잔액 조회 API
+	@GetMapping
+	public ResponseEntity<BalanceResponse> getBalance(@RequestParam String userId) {
+		BalanceResponse response = new BalanceResponse(userId, 1000);
+		return ResponseEntity.ok(response);
+	}
 }

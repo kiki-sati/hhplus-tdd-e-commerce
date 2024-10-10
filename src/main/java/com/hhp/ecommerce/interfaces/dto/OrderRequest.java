@@ -1,18 +1,15 @@
 package com.hhp.ecommerce.interfaces.dto;
 
 import java.util.List;
-import java.util.UUID;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class OrderRequest {
-    private UUID userId;
-    private List<OrderItem> items;
-
-    @Data
-    public static class OrderItem {
-        private UUID productId;
-        private int quantity;
-    }
+	private String userId;
+	private List<OrderItemDto> items;  // 주문할 상품 목록
 }
