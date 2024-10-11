@@ -312,7 +312,25 @@ erDiagram
 ```
 
 ---
+# API 명세서
+| **API Name**          | **Endpoint**          | **Method** | **Request** | **Response** | **Description**                           |
+|-----------------------|-----------------------|------------|-------------|--------------|-------------------------------------------|
+| **잔액 충전 API**     | `/balance/charge`     | `POST`     | `{ "userId": "string", "amount": 1000 }` | `{ "userId": "string", "currentBalance": 2000 }` | 사용자의 충전 요청을 처리하고, 잔액을 업데이트합니다. |
+| **잔액 조회 API**     | `/balance`            | `GET`      | `userId=string`  | `{ "userId": "string", "currentBalance": 2000 }` | 특정 사용자의 현재 잔액을 조회합니다.            |
+| **상품 조회 API**     | `/products`           | `GET`      | 없음          | `[ { "productId": "string", "name": "string", "price": 1000, "stock": 10 } ]` | 모든 상품의 정보를 조회합니다.                   |
+| **주문 생성/결제 API**| `/order`              | `POST`     | `{ "userId": "string", "items": [ { "productId": "string", "quantity": 2 } ] }` | `{ "orderId": "string", "userId": "string", "totalPrice": 3000, "orderStatus": "SUCCESS" }` | 사용자가 여러 상품을 선택하여 주문을 생성하고 결제를 수행합니다. |
+| **상위 상품 조회 API**| `/products/top`       | `GET`      | 없음          | `[ { "productId": "string", "name": "string", "price": 1000, "totalSales": 20 } ]` | 최근 3일간 가장 많이 판매된 상위 5개 상품 조회 |
 
+---
+
+### Error Codes
+| **Error Code**          | **Description**                                      |
+|-------------------------|------------------------------------------------------|
+| **400 Bad Request**     | 잘못된 요청 (예: 요청 값이 비어 있거나 형식이 잘못된 경우) |
+| **404 Not Found**       | 리소스를 찾을 수 없음 (예: 잘못된 ID로 조회 시)            |
+| **500 Internal Server Error** | 서버 내부 오류                                    |
+
+---
 # 프로젝트 구조
 
 ### 클린 레이어드 아키텍처
