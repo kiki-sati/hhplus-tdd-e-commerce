@@ -1,9 +1,11 @@
-package com.hhp.ecommerce.interfaces.api;
+package com.hhp.ecommerce.presentation.api;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,10 +22,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hhp.ecommerce.presentation.dto.OrderItemDto;
+import com.hhp.ecommerce.presentation.dto.OrderRequest;
 
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
-@WebMvcTest(ProductController.class)
-class ProductControllerTest {
+@WebMvcTest(OrderController.class)
+class OrderControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -40,31 +44,28 @@ class ProductControllerTest {
 	}
 
 	@Test
-	void testGetProducts() throws Exception {
-		mockMvc.perform(get("/products")
-				.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())  // 성공 상태 코드 확인
-			.andDo(document("get-products",  // RestDocs 문서화 설정
-				responseFields(
-					fieldWithPath("[].productId").description("상품 ID"),
-					fieldWithPath("[].name").description("상품명"),
-					fieldWithPath("[].price").description("상품 가격"),
-					fieldWithPath("[].stock").description("남은 재고")
-				)
-			));
-	}
+	void testCreateOrder() throws Exception {
+		// Mock 주문 요청 생성
+		OrderRequest requestDto = new OrderRequest("user1", Arrays.asList(
+			new OrderItemDto("abc123", 2),
+			new OrderItemDto("xyz789", 1)
+		));
 
-	@Test
-	void testGetTopProducts() throws Exception {
-		mockMvc.perform(get("/products/top")
-				.accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(post("/order")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(requestDto)))
 			.andExpect(status().isOk())
-			.andDo(document("get-top-products",
+			.andDo(document("create-order",
+				requestFields(
+					fieldWithPath("userId").description("주문할 사용자 ID"),
+					fieldWithPath("items[].productId").description("주문할 상품 ID"),
+					fieldWithPath("items[].quantity").description("주문할 상품 수량")
+				),
 				responseFields(
-					fieldWithPath("[].productId").description("상품 ID"),
-					fieldWithPath("[].name").description("상품명"),
-					fieldWithPath("[].price").description("상품 가격"),
-					fieldWithPath("[].totalSales").description("최근 3일간의 총 판매 수량")
+					fieldWithPath("orderId").description("생성된 주문 ID"),
+					fieldWithPath("userId").description("주문한 사용자 ID"),
+					fieldWithPath("totalPrice").description("총 결제 금액"),
+					fieldWithPath("orderStatus").description("주문 상태 (SUCCESS, FAILED)")
 				)
 			));
 	}

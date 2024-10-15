@@ -1,4 +1,4 @@
-package com.hhp.ecommerce.interfaces.api;
+package com.hhp.ecommerce.presentation.api;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hhp.ecommerce.interfaces.dto.ProductResponse;
-import com.hhp.ecommerce.interfaces.dto.ProductSalesResponse;
+import com.hhp.ecommerce.presentation.dto.ProductResponse;
+import com.hhp.ecommerce.presentation.dto.ProductSalesResponse;
 
 @RestController
 @RequestMapping("/products")

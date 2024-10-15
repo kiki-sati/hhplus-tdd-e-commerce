@@ -1,4 +1,4 @@
-package com.hhp.ecommerce.interfaces.api;
+package com.hhp.ecommerce.presentation.api;
 
 import java.util.UUID;
 
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hhp.ecommerce.interfaces.dto.OrderRequest;
-import com.hhp.ecommerce.interfaces.dto.OrderResponse;
+import com.hhp.ecommerce.presentation.dto.OrderRequest;
+import com.hhp.ecommerce.presentation.dto.OrderResponse;
 
 @RestController
 @RequestMapping("/order")

@@ -1,4 +1,4 @@
-package com.hhp.ecommerce.interfaces.api;
+package com.hhp.ecommerce.presentation.api;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hhp.ecommerce.interfaces.dto.BalanceRequest;
+import com.hhp.ecommerce.presentation.dto.BalanceRequest;
 
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 @WebMvcTest(BalanceController.class)

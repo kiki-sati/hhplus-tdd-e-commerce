@@ -1,4 +1,4 @@
-package com.hhp.ecommerce.interfaces.api;
+package com.hhp.ecommerce.presentation.api;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hhp.ecommerce.interfaces.dto.BalanceRequest;
-import com.hhp.ecommerce.interfaces.dto.BalanceResponse;
+import com.hhp.ecommerce.presentation.dto.BalanceRequest;
+import com.hhp.ecommerce.presentation.dto.BalanceResponse;
 
 @RestController
 @RequestMapping("/balance")
