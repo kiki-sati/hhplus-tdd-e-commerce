@@ -139,24 +139,64 @@ sequenceDiagram
     participant ProductService as Product Service
     participant Cache as Cache
     participant Database as Database
-    User ->> APIGateway: 상품 조회 요청
+    User ->> APIGateway: 상품 조회 요청 (userId 헤더로 전달)
     APIGateway ->> ProductService: 상품 정보 조회 요청
-    ProductService ->> Cache: 캐시에서 상품 이름, 가격 조회
-    alt 캐시 히트 (이름, 가격)
-        Cache -->> ProductService: 캐시된 상품 정보 (이름, 가격)
-    else 캐시 미스
-        ProductService ->> Database: 이름, 가격 조회
+    note over ProductService: 캐시 도입은 신중히, 점진적 도입 검토
+
+    alt 캐시 사용 (점진적 도입 판단)
+        ProductService ->> Cache: 캐시에서 상품 이름, 가격 조회
+        alt 캐시 히트 (이름, 가격)
+            Cache -->> ProductService: 캐시된 상품 정보 (이름, 가격)
+        else 캐시 미스
+            ProductService ->> Database: 이름, 가격 조회
+            Database -->> ProductService: 상품 이름, 가격 반환
+            ProductService ->> Cache: 캐시 업데이트 (이름, 가격)
+        end
+    else 캐시 미사용 (초기 도입 단계)
+        ProductService ->> Database: 상품 이름, 가격 조회
         Database -->> ProductService: 상품 이름, 가격 반환
-        ProductService ->> Cache: 캐시 업데이트 (이름, 가격)
     end
+
     ProductService ->> Database: 잔여 수량 조회 (실시간 정합성 보장)
     Database -->> ProductService: 잔여 수량 반환
     ProductService -->> APIGateway: 상품 정보 전달 (ID, 이름, 가격, 잔여수량)
     APIGateway -->> User: 상품 정보 반환 (ID, 이름, 가격, 잔여수량)
-
 ```
 
 ### 3.주문 / 결제 API
+
+**주문 생성**
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant APIGateway as API Gateway
+    participant OrderService as Order Service
+    participant ProductService as Product Service
+    participant Database as Database
+    User ->> APIGateway: 🛒 주문 생성 요청 (사용자 ID, 상품 ID, 수량 목록)
+    APIGateway ->> OrderService: 주문 생성 요청 전달 (사용자 ID, 상품 ID, 수량 목록)
+    note right of OrderService: 주문 요청 처리 시작 및 주문 상태 초기화
+    OrderService ->> ProductService: 상품 재고 확인 요청 (상품 ID, 주문 수량)
+    ProductService ->> Database: 상품 재고 조회
+    Database -->> ProductService: 재고 정보 반환
+    ProductService -->> OrderService: 재고 확인 결과 반환
+
+    alt 재고가 충분할 경우
+        OrderService ->> Database: 주문 생성 및 초기 상태 설정 (PENDING)
+        Database -->> OrderService: 주문 ID 반환
+        OrderService ->> Database: 주문 상태 이력(OrderHistory) 생성 (상태: PENDING)
+        Database -->> OrderService: 이력 저장 완료
+        OrderService -->> APIGateway: 주문 생성 성공 (주문 ID)
+        APIGateway -->> User: 주문 생성 완료 (주문 ID, 결제 진행 필요)
+    else 재고가 부족할 경우
+        OrderService -->> APIGateway: 🚫 재고 부족으로 주문 실패
+        APIGateway -->> User: ❌ 주문 실패 (재고 부족)
+    end
+
+```
+
+**결제 처리**
 
 ```mermaid
 sequenceDiagram
@@ -167,56 +207,57 @@ sequenceDiagram
     participant ProductService as Product Service
     participant Database as Database
     participant DataPlatform as 외부 데이터 플랫폼
-    User ->> APIGateway: 🛒 주문 요청 (사용자 ID, 상품 ID, 수량 목록)
-    APIGateway ->> OrderService: 주문 요청 전달 (사용자 ID, 상품 ID, 수량 목록)
-    note right of OrderService: 주문 요청 처리 시작 및 주문 상태 초기화
-    OrderService ->> Database: 주문 생성 및 초기 상태 설정 (PENDING)
-    Database -->> OrderService: 주문 ID 반환
-    OrderService ->> Database: 주문 상태 이력(OrderHistory) 생성 (상태: PENDING)
-    Database -->> OrderService: 이력 저장 완료
-    OrderService ->> UserService: 사용자 잔액 확인 요청 (사용자 ID)
-    UserService ->> Database: 사용자 잔액 조회
-    Database -->> UserService: 사용자 잔액 반환
-    UserService -->> OrderService: 잔액 정보 반환
+    User ->> APIGateway: 💳 결제 요청 (주문 ID, 사용자 ID, 멱등성 키)
+    APIGateway ->> OrderService: 결제 요청 전달 (주문 ID, 사용자 ID, 멱등성 키)
 
-    alt 잔액이 충분할 경우
-        OrderService ->> ProductService: 상품 재고 확인 요청 (상품 ID, 주문 수량)
-        ProductService ->> Database: 상품 재고 조회
-        Database -->> ProductService: 재고 정보 반환
-        ProductService -->> OrderService: 재고 확인 결과 반환
+    alt 멱등성 키 존재 확인
+        OrderService ->> Database: 멱등성 키 조회
+        Database -->> OrderService: 멱등성 키 존재 여부 확인
 
-        alt 재고가 충분할 경우
-            OrderService ->> UserService: 잔액 차감 요청 (사용자 ID, 결제 금액)
-            UserService ->> Database: 잔액 업데이트 (잔액 차감)
-            Database -->> UserService: 잔액 업데이트 결과 반환
-            UserService -->> OrderService: 잔액 차감 완료
-            OrderService ->> ProductService: 재고 감소 요청 (상품 ID, 주문 수량)
-            ProductService ->> Database: 재고 업데이트
+        alt 멱등성 키 존재 (중복 요청)
+            OrderService -->> APIGateway: 이미 처리된 요청 (결과 반환)
+            APIGateway -->> User: 결제 결과 반환 (이전 처리 결과)
+        else 멱등성 키 없음 (처음 요청)
+            OrderService ->> Database: 멱등성 키 저장 (처리 중 상태)
+            OrderService ->> ProductService: 상품 재고 감소 요청 (상품 ID, 주문 수량)
+            ProductService ->> Database: 재고 업데이트 (차감)
             Database -->> ProductService: 재고 업데이트 결과 반환
             ProductService -->> OrderService: 재고 감소 완료
-            OrderService ->> Database: 주문 정보 저장 및 상태 변경 (SUCCESS)
-            Database -->> OrderService: 주문 정보 저장 완료
-            OrderService ->> Database: 주문 상태 이력(OrderHistory) 업데이트 (상태: SUCCESS)
-            Database -->> OrderService: 주문 상태 이력 저장 완료
-            OrderService ->> DataPlatform: 주문 정보 전송 (주문 ID, 사용자 ID, 결제 금액)
-            DataPlatform -->> OrderService: 전송 성공
-            OrderService -->> APIGateway: 주문 및 결제 성공
-            APIGateway -->> User: 🎉 결제 성공 및 주문 완료
-        else 재고가 부족할 경우
-            OrderService ->> Database: 주문 상태 변경 (FAILED)
-            Database -->> OrderService: 주문 상태 변경 완료
-            OrderService ->> Database: 주문 상태 이력(OrderHistory) 업데이트 (상태: FAILED, 사유: 재고 부족)
-            Database -->> OrderService: 주문 상태 이력 저장 완료
-            OrderService -->> APIGateway: 🚫 재고 부족으로 주문 실패
-            APIGateway -->> User: ❌ 주문 실패 (재고 부족)
+            OrderService ->> UserService: 사용자 잔액 확인 요청 (사용자 ID)
+            UserService ->> Database: 사용자 잔액 조회
+            Database -->> UserService: 사용자 잔액 반환
+            UserService -->> OrderService: 잔액 정보 반환
+
+            alt 잔액이 충분할 경우
+                OrderService ->> UserService: 잔액 차감 요청 (사용자 ID, 결제 금액)
+                UserService ->> Database: 잔액 업데이트 (잔액 차감)
+                Database -->> UserService: 잔액 업데이트 결과 반환
+                UserService -->> OrderService: 잔액 차감 완료
+                OrderService ->> Database: 주문 정보 업데이트 (상태: SUCCESS)
+                Database -->> OrderService: 주문 정보 업데이트 완료
+                OrderService ->> Database: 주문 상태 이력(OrderHistory) 업데이트 (상태: SUCCESS)
+                Database -->> OrderService: 주문 상태 이력 저장 완료
+                OrderService ->> DataPlatform: 주문 정보 전송 (주문 ID, 사용자 ID, 결제 금액)
+                DataPlatform -->> OrderService: 전송 성공
+                OrderService ->> Database: 멱등성 키 업데이트 (상태: SUCCESS)
+                Database -->> OrderService: 멱등성 키 업데이트 완료
+                OrderService -->> APIGateway: 결제 성공 (주문 ID, 상태: SUCCESS)
+                APIGateway -->> User: 🎉 결제 성공 및 주문 완료
+            else 잔액이 부족할 경우
+                OrderService ->> Database: 주문 상태 업데이트 (FAILED)
+                Database -->> OrderService: 주문 상태 업데이트 완료
+                OrderService ->> Database: 주문 상태 이력(OrderHistory) 업데이트 (상태: FAILED, 사유: 잔액 부족)
+                Database -->> OrderService: 주문 상태 이력 저장 완료
+                OrderService ->> ProductService: 재고 롤백 요청 (상품 ID, 주문 수량)
+                ProductService ->> Database: 재고 롤백 업데이트
+                Database -->> ProductService: 재고 롤백 결과 반환
+                ProductService -->> OrderService: 재고 롤백 완료
+                OrderService ->> Database: 멱등성 키 업데이트 (상태: FAILED)
+                Database -->> OrderService: 멱등성 키 업데이트 완료
+                OrderService -->> APIGateway: 💸 잔액 부족으로 결제 실패
+                APIGateway -->> User: ❌ 결제 실패 (잔액 부족)
+            end
         end
-    else 잔액이 부족할 경우
-        OrderService ->> Database: 주문 상태 변경 (FAILED)
-        Database -->> OrderService: 주문 상태 변경 완료
-        OrderService ->> Database: 주문 상태 이력(OrderHistory) 업데이트 (상태: FAILED, 사유: 잔액 부족)
-        Database -->> OrderService: 주문 상태 이력 저장 완료
-        OrderService -->> APIGateway: 💸 잔액 부족으로 결제 실패
-        APIGateway -->> User: ❌ 결제 실패 (잔액 부족)
     end
 
 ```
@@ -228,122 +269,105 @@ sequenceDiagram
 ```mermaid
 erDiagram
     USER {
-        UUID userId PK "Primary Key (고유 사용자 식별자)"
-        STRING name "사용자 이름"
-        STRING email "사용자 이메일"
-        DATETIME createdAt "생성일자"
-        DATETIME updatedAt "수정일자"
-    }
-
-    BALANCE {
-        UUID balanceId PK "Primary Key (고유 잔액 ID)"
-        UUID userId FK "Foreign Key (사용자 ID 참조)"
-        INT currentBalance "현재 잔액"
-        DATETIME updatedAt "잔액 수정일자"
-    }
-
-    BALANCEHISTORY {
-        UUID transactionId PK "Primary Key (고유 트랜잭션 ID)"
-        UUID userId FK "Foreign Key (사용자 ID 참조)"
-        INT amount "변동 금액 (+/- 값)"
-        VARCHAR transactionType "변동 유형 ('CHARGE', 'PAYMENT', 'REFUND')"
-        INT balanceBefore "변동 전 잔액"
-        INT balanceAfter "변동 후 잔액"
-        DATETIME createdAt "트랜잭션 발생 시간"
+        BIGINT id PK "Primary Key (고유 사용자 식별자)"
+        VARCHAR name "사용자 이름"
+        VARCHAR email "사용자 이메일"
+        DATETIME created_at "생성일자"
+        DATETIME updated_at "수정일자"
     }
 
     PRODUCT {
-        UUID productId PK "Primary Key (고유 상품 식별자)"
-        STRING name "상품명"
+        BIGINT id PK "Primary Key (고유 상품 식별자)"
+        VARCHAR name "상품명"
         INT price "상품 가격"
         INT stock "남은 재고"
-        DATETIME createdAt "생성일자"
-        DATETIME updatedAt "수정일자"
+        DATETIME created_at "생성일자"
+        DATETIME updated_at "수정일자"
     }
 
     ORDER {
-        UUID orderId PK "Primary Key (고유 주문 식별자)"
-        UUID userId FK "Foreign Key (사용자 ID 참조)"
-        INT totalPrice "총 결제 금액"
-        STRING orderStatus "주문 상태 (PENDING, SUCCESS, FAILED)"
-        DATETIME orderDate "주문 일자"
-        DATETIME updatedAt "주문 수정일자"
+        BIGINT id PK "Primary Key (고유 주문 식별자)"
+        BIGINT user_id FK "Foreign Key (사용자 ID 참조)"
+        INT total_price "총 결제 금액"
+        VARCHAR order_status "주문 상태 (PENDING, SUCCESS, FAILED)"
+        DATETIME order_date "주문 일자"
+        DATETIME updated_at "주문 수정일자"
     }
 
-    ORDERITEM {
-        UUID orderItemId PK "Primary Key (고유 주문 항목 식별자)"
-        UUID orderId FK "Foreign Key (주문 ID 참조)"
-        UUID productId FK "Foreign Key (상품 ID 참조)"
+    ORDER_ITEM {
+        BIGINT id PK "Primary Key (고유 주문 항목 식별자)"
+        BIGINT order_id FK "Foreign Key (주문 ID 참조)"
+        BIGINT product_id FK "Foreign Key (상품 ID 참조)"
         INT quantity "주문 수량"
         INT price "주문 당시의 단가"
     }
 
-    ORDERHISTORY {
-        UUID historyId PK "Primary Key (고유 주문 이력 ID)"
-        UUID orderId FK "Foreign Key (주문 ID 참조)"
-        STRING orderStatus "주문 상태 (PENDING, SUCCESS, FAILED)"
-        STRING changedBy "변경을 수행한 사용자 (시스템 또는 관리자)"
-        DATETIME changedAt "주문 상태 변경 일자"
-    }
-
     CART {
-        UUID cartId PK "Primary Key (고유 장바구니 식별자)"
-        UUID userId FK "Foreign Key (사용자 ID 참조)"
-        DATETIME createdAt "생성일자"
-        DATETIME updatedAt "수정일자"
+        BIGINT id PK "Primary Key (고유 장바구니 식별자)"
+        BIGINT user_id FK "Foreign Key (사용자 ID 참조)"
+        DATETIME created_at "생성일자"
+        DATETIME updated_at "수정일자"
     }
 
-    CARTITEM {
-        UUID cartItemId PK "Primary Key (고유 장바구니 항목 식별자)"
-        UUID cartId FK "Foreign Key (장바구니 ID 참조)"
-        UUID productId FK "Foreign Key (상품 ID 참조)"
+    CART_ITEM {
+        BIGINT id PK "Primary Key (고유 장바구니 항목 식별자)"
+        BIGINT cart_id FK "Foreign Key (장바구니 ID 참조)"
+        BIGINT product_id FK "Foreign Key (상품 ID 참조)"
         INT quantity "장바구니에 담긴 수량"
     }
 
-    USER ||--o{ BALANCE: "has"
-    USER ||--o{ BALANCEHISTORY: "logs"
     USER ||--o{ ORDER: "places"
-    ORDER ||--|{ ORDERITEM: "contains"
-    ORDER ||--|{ ORDERHISTORY: "logs"
-    PRODUCT ||--o{ ORDERITEM: "part of"
+    ORDER ||--|{ ORDER_ITEM: "contains"
     USER ||--o{ CART: "has"
-    CART ||--|{ CARTITEM: "includes"
-    PRODUCT ||--o{ CARTITEM: "in"
+    CART ||--|{ CART_ITEM: "includes"
+    PRODUCT ||--o{ CART_ITEM: "in"
+    PRODUCT ||--o{ ORDER_ITEM: "part of"
 ```
 
 ---
-# API 명세서
-| **API Name**          | **Endpoint**          | **Method** | **Request** | **Response** | **Description**                           |
-|-----------------------|-----------------------|------------|-------------|--------------|-------------------------------------------|
-| **잔액 충전 API**     | `/balance/charge`     | `POST`     | `{ "userId": "string", "amount": 1000 }` | `{ "userId": "string", "currentBalance": 2000 }` | 사용자의 충전 요청을 처리하고, 잔액을 업데이트합니다. |
-| **잔액 조회 API**     | `/balance`            | `GET`      | `userId=string`  | `{ "userId": "string", "currentBalance": 2000 }` | 특정 사용자의 현재 잔액을 조회합니다.            |
-| **상품 조회 API**     | `/products`           | `GET`      | 없음          | `[ { "productId": "string", "name": "string", "price": 1000, "stock": 10 } ]` | 모든 상품의 정보를 조회합니다.                   |
-| **주문 생성/결제 API**| `/order`              | `POST`     | `{ "userId": "string", "items": [ { "productId": "string", "quantity": 2 } ] }` | `{ "orderId": "string", "userId": "string", "totalPrice": 3000, "orderStatus": "SUCCESS" }` | 사용자가 여러 상품을 선택하여 주문을 생성하고 결제를 수행합니다. |
-| **상위 상품 조회 API**| `/products/top`       | `GET`      | 없음          | `[ { "productId": "string", "name": "string", "price": 1000, "totalSales": 20 } ]` | 최근 3일간 가장 많이 판매된 상위 5개 상품 조회 |
+
 
 ---
 
-### Error Codes
-| **Error Code**          | **Description**                                      |
-|-------------------------|------------------------------------------------------|
-| **400 Bad Request**     | 잘못된 요청 (예: 요청 값이 비어 있거나 형식이 잘못된 경우) |
-| **404 Not Found**       | 리소스를 찾을 수 없음 (예: 잘못된 ID로 조회 시)            |
-| **500 Internal Server Error** | 서버 내부 오류                                    |
+### 📄 **API 명세서 수정**
+
+- **API 경로를 복수형**으로 변경하여 RESTful 규칙 준수
+- **주문 생성과 결제 API를 분리**하여 요청을 간소화
+
+# 📄 E-Commerce 서비스 API 명세서
+
+| **API Name**     | **Endpoint**            | **Method** | **Request**                                                                     | **Response**                                                                                | **Description**                |
+|------------------|-------------------------|------------|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|--------------------------------|
+| **잔액 충전 API**    | `/balances/charge`      | `POST`     | `{ "userId": "string", "amount": 1000 }`                                        | `{ "userId": "string", "currentBalance": 2000 }`                                            | 사용자의 충전 요청을 처리하고, 잔액을 업데이트합니다. |
+| **잔액 조회 API**    | `/balances`             | `GET`      | 없음                                                                              | `{ "userId": "string", "currentBalance": 2000 }`                                            | 특정 사용자의 현재 잔액을 조회합니다.          |
+| **상품 조회 API**    | `/products`             | `GET`      | 없음                                                                              | `[ { "productId": "string", "name": "string", "price": 1000, "stock": 10 } ]`               | 모든 상품의 정보를 조회합니다.              |
+| **주문 생성 API**    | `/orders`               | `POST`     | `{ "userId": "string", "items": [ { "productId": "string", "quantity": 2 } ] }` | `{ "orderId": "string", "userId": "string", "totalPrice": 3000, "orderStatus": "PENDING" }` | 사용자가 여러 상품을 선택하여 주문을 생성합니다.    |
+| **결제 API**       | `/orders/{orderId}/pay` | `POST`     | 없음                                                                              | `{ "orderId": "string", "orderStatus": "SUCCESS" }`                                         | 특정 주문에 대한 결제를 수행합니다.           |
+| **상위 상품 조회 API** | `/products/top`         | `GET`      | 없음                                                                              | `[ { "productId": "string", "name": "string", "price": 1000, "totalSales": 20 } ]`          | 최근 3일간 가장 많이 판매된 상위 5개 상품 조회   |
 
 ---
+
 # 프로젝트 구조
 
 ### 클린 레이어드 아키텍처
 
 ```
-├── application
-├── domain
-│   └── repository
-├── infra
-│   └── repository
-└── interfaces
-    ├── api
-    ├── dto
+application
+├── service              # 비즈니스 로직 처리
+└── usecase              # 유스케이스 인터페이스 정의
+
+domain
+├── model                # 도메인 엔티티
+└── service              # 복잡한 도메인 로직 처리
+
+infra
+└── persistence          # 영속성 계층
+
+presentation
+├── controller           # API 컨트롤러 (사용자와 상호작용)
+└── dto
+    ├── request          # 클라이언트 요청 DTO
+    └── response         # 클라이언트 응답 DTO
 ```
 
 --- 
@@ -358,7 +382,7 @@ erDiagram
 
 ### Database
 
-- PostgreSQL: 메인 데이터베이스
+- MySql: 메인 데이터베이스
 - H2 Database: 테스트용 인메모리 DB
 
 ### Caching & Messaging
