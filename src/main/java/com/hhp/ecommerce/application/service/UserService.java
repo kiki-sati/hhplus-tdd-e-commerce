@@ -1,6 +1,9 @@
 package com.hhp.ecommerce.application.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.hhp.ecommerce.domain.model.User;
 import com.hhp.ecommerce.infra.persistence.UserRepository;
@@ -21,9 +24,11 @@ public class UserService {
 		userRepository.save(user);
 	}
 
+	@Transactional(readOnly = true)
 	public int getUserBalance(Long userId) {
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+		Optional<User> userOptional = userRepository.findByIdWithSharedLock(userId);
+		User user = userOptional.orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+		
 		return user.getCurrentBalance();
 	}
 }
