@@ -16,12 +16,12 @@ public class UserService {
 
 	private final UserRepository userRepository;
 
-	public void deductBalance(Long userId, int amount) {
+	public User deductBalance(Long userId, int amount) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 
 		user.deductBalance(amount);
-		userRepository.save(user);
+		return userRepository.save(user);
 	}
 
 	@Transactional
