@@ -2,14 +2,15 @@ package com.hhp.ecommerce.presentation.dto;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
 public class OrderRequest {
-	private String userId;
-	private List<OrderItemDto> items;  // 주문할 상품 목록
+	@NotNull(message = "사용자 ID는 필수입니다.")
+	private Long userId;
+
+	@NotEmpty(message = "주문 항목은 하나 이상이어야 합니다.")
+	private List<ItemRequest> items;
 }

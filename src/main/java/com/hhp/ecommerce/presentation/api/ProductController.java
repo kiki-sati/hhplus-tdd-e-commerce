@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hhp.ecommerce.application.service.ProductService;
 import com.hhp.ecommerce.domain.model.Product;
+import com.hhp.ecommerce.presentation.dto.ProductResponse;
 import com.hhp.ecommerce.presentation.dto.ProductSalesResponse;
-import com.hhp.ecommerce.presentation.dto.response.ProductResponse;
 
 import lombok.AllArgsConstructor;
 
