@@ -18,17 +18,23 @@ public class UserService {
 
 	public void deductBalance(Long userId, int amount) {
 		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 
 		user.deductBalance(amount);
 		userRepository.save(user);
+	}
+
+	@Transactional
+	public User getUserWithPessimisticLock(Long userId) {
+		return userRepository.findByIdWithLock(userId)
+			.orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 	}
 
 	@Transactional(readOnly = true)
 	public int getUserBalance(Long userId) {
 		Optional<User> userOptional = userRepository.findByIdWithSharedLock(userId);
 		User user = userOptional.orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
-		
+
 		return user.getCurrentBalance();
 	}
 }
