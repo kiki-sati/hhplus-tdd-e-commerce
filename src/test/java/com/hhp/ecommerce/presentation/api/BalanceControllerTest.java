@@ -1,7 +1,8 @@
-package com.hhp.ecommerce.interfaces.api;
+package com.hhp.ecommerce.presentation.api;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -20,10 +21,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hhp.ecommerce.presentation.dto.BalanceRequest;
 
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
-@WebMvcTest(ProductController.class)
-class ProductControllerTest {
+@WebMvcTest(BalanceController.class)
+public class BalanceControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -40,31 +42,38 @@ class ProductControllerTest {
 	}
 
 	@Test
-	void testGetProducts() throws Exception {
-		mockMvc.perform(get("/products")
-				.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())  // 성공 상태 코드 확인
-			.andDo(document("get-products",  // RestDocs 문서화 설정
+	public void testChargeBalance() throws Exception {
+		BalanceRequest requestDto = new BalanceRequest("user1", 1000);
+
+		mockMvc.perform(post("/balance/charge")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(requestDto)))
+			.andExpect(status().isOk())
+			.andDo(document("charge-balance",  // RestDocs 문서화 설정
+				requestFields(
+					fieldWithPath("userId").description("충전할 사용자 ID"),
+					fieldWithPath("amount").description("충전할 금액")
+				),
 				responseFields(
-					fieldWithPath("[].productId").description("상품 ID"),
-					fieldWithPath("[].name").description("상품명"),
-					fieldWithPath("[].price").description("상품 가격"),
-					fieldWithPath("[].stock").description("남은 재고")
+					fieldWithPath("userId").description("사용자 ID"),
+					fieldWithPath("currentBalance").description("충전 후 현재 잔액")
 				)
 			));
 	}
 
 	@Test
-	void testGetTopProducts() throws Exception {
-		mockMvc.perform(get("/products/top")
+	public void testGetBalance() throws Exception {
+		mockMvc.perform(get("/balance")
+				.param("userId", "user1")
 				.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andDo(document("get-top-products",
+			.andExpect(status().isOk())  // 성공 상태 코드 확인
+			.andDo(document("get-balance",  // RestDocs 문서화 설정
+				queryParameters(
+					parameterWithName("userId").description("잔액을 조회할 사용자 ID")
+				),
 				responseFields(
-					fieldWithPath("[].productId").description("상품 ID"),
-					fieldWithPath("[].name").description("상품명"),
-					fieldWithPath("[].price").description("상품 가격"),
-					fieldWithPath("[].totalSales").description("최근 3일간의 총 판매 수량")
+					fieldWithPath("userId").description("사용자 ID"),
+					fieldWithPath("currentBalance").description("현재 잔액")
 				)
 			));
 	}

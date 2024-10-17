@@ -1,4 +1,4 @@
-package com.hhp.ecommerce.interfaces.dto;
+package com.hhp.ecommerce.presentation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
