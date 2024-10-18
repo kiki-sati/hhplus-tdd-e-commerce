@@ -2,6 +2,10 @@ package com.hhp.ecommerce.presentation.api;
 
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,16 +26,17 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class OrderController {
 
-	private final OrderService orderService;
+    private final OrderService orderService;
 
-	@PostMapping
-	public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderRequest request) {
-		Order order = Order.create(request.getUserId(),
-			request.getItems().stream()
-				.map(item -> OrderItem.create(item.getProductId(), item.getQuantity(), item.getPrice()))
-				.collect(Collectors.toList())
-		);
-		orderService.createOrder(order);
-		return ResponseEntity.ok().build();
-	}
+    @PostMapping
+    @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
+    public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderRequest request) {
+        Order order = Order.create(request.getUserId(),
+                request.getItems().stream()
+                        .map(item -> OrderItem.create(item.getProductId(), item.getQuantity(), item.getPrice()))
+                        .collect(Collectors.toList())
+        );
+        orderService.createOrder(order);
+        return ResponseEntity.ok().build();
+    }
 }
