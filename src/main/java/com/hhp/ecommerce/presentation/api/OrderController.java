@@ -2,6 +2,7 @@ package com.hhp.ecommerce.presentation.api;
 
 import java.util.stream.Collectors;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +15,6 @@ import com.hhp.ecommerce.domain.model.OrderItem;
 import com.hhp.ecommerce.presentation.dto.OrderRequest;
 import com.hhp.ecommerce.presentation.dto.OrderResponse;
 
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
