@@ -1,39 +1,41 @@
 package com.hhp.ecommerce.presentation.api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.hhp.ecommerce.presentation.dto.CartItemResponse;
+import com.hhp.ecommerce.application.service.CartService;
+import com.hhp.ecommerce.domain.model.Cart;
+import com.hhp.ecommerce.presentation.dto.CartResponse;
+import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/cart")
+@RequestMapping("/api/v1/cart")
+@AllArgsConstructor
+@Tag(name = "Cart API", description = "장바구니 관련 API")
 public class CartController {
 
-	private static final List<CartItemResponse> cartItems = new ArrayList<>();
+    private final CartService cartService;
 
-	@PostMapping("/add")
-	public List<CartItemResponse> addItemToCart(@RequestBody CartItemResponse item) {
-		cartItems.add(item);
-		return cartItems;
-	}
+    @Operation(summary = "장바구니에 상품 추가", description = "사용자의 장바구니에 특정 상품을 추가합니다.")
+    @PostMapping("/add")
+    public ResponseEntity<Void> addToCart(@RequestParam Long userId, @RequestParam Long productId, @RequestParam int quantity) {
+        cartService.addToCart(userId, productId, quantity);
+        return ResponseEntity.ok().build();
+    }
 
-	@DeleteMapping("/remove")
-	public List<CartItemResponse> removeItemFromCart(@RequestParam UUID productId) {
-		cartItems.removeIf(item -> item.getProductId().equals(productId));
-		return cartItems;
-	}
+    @Operation(summary = "장바구니에서 상품 제거", description = "사용자의 장바구니에서 특정 상품을 제거합니다.")
+    @DeleteMapping("/remove")
+    public ResponseEntity<Void> removeFromCart(@RequestParam Long userId, @RequestParam Long productId) {
+        cartService.removeFromCart(userId, productId);
+        return ResponseEntity.ok().build();
+    }
 
-	@GetMapping
-	public List<CartItemResponse> getCartItems() {
-		return cartItems;
-	}
+    @Operation(summary = "장바구니 조회", description = "사용자의 장바구니를 조회합니다.")
+    @GetMapping("/{userId}")
+    public ResponseEntity<CartResponse> getCart(@PathVariable Long userId) {
+        Cart cart = cartService.getCart(userId);
+        CartResponse cartResponse = CartResponse.fromCart(cart);
+        return ResponseEntity.ok(cartResponse);
+    }
 }
