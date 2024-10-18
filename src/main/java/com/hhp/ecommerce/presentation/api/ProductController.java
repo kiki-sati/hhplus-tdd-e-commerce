@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 
-@Tag(name = "Product Management", description = "상품 관리 API")  // 기존 @Api 대체
+@Tag(name = "Product API", description = "상품 관리 API")
 @RestController
 @RequestMapping("/products")
 @AllArgsConstructor
