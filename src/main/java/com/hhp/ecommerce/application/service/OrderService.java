@@ -18,7 +18,6 @@ public class OrderService {
 
 	private final OrderRepository orderRepository;
 	private final ProductService productService;
-	private final UserRepository userRepository;
 
 	@Transactional
 	public Order createOrder(Order order) {

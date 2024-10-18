@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.1.4'
     id 'io.spring.dependency-management' version '1.1.3'
-    id 'org.asciidoctor.jvm.convert' version '3.3.2' // (1)
 }
 
 group = 'com.example'
@@ -12,56 +11,34 @@ java {
     sourceCompatibility = '17'
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-    asciidoctorExt // (2)
-}
-
 repositories {
     mavenCentral()
 }
 
-// (3)
-ext {
-    set('snippetsDir', file("build/generated-snippets"))
-}
 
 dependencies {
-    implementation 'mysql:mysql-connector-java:8.0.33' // 버전 추가
+    // JDBC 드라이버
+    implementation 'mysql:mysql-connector-java:8.0.33'
+    implementation "com.h2database:h2:2.2.222"
+
+    // Spring Boot 관련 의존성
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+    implementation "org.springframework.boot:spring-boot-starter-web-services"
+    implementation "org.springframework.boot:spring-boot-starter-aop"
+    implementation "org.springframework.boot:spring-boot-starter-jdbc"
+    implementation "org.springframework.boot:spring-boot-starter-data-rest"
 
+    // SpringDoc OpenAPI (Swagger)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // 테스트 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor' // (4)
-    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc' // (5)
-}
-
-tasks.named('test') {
-    outputs.dir snippetsDir // (6)
-    useJUnitPlatform()
-}
-
-// (7)
-tasks.named('asciidoctor') {
-    inputs.dir snippetsDir
-    configurations 'asciidoctorExt'
-    sources {
-        include("**/index.adoc")
-    }
-    baseDirFollowsSourceFile()
-    dependsOn test
-}
-
-// (8)
-bootJar {
-    dependsOn asciidoctor
-    from("${asciidoctor.outputDir}") {
-        into 'static/docs'
-    }
 }

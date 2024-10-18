@@ -1,5 +1,6 @@
 package com.hhp.ecommerce.presentation.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import com.hhp.ecommerce.presentation.dto.BalanceResponse;
 
 @RestController
 @RequestMapping("/balance")
+@Tag(name = "Balance API", description = "잔액 관련 API")
 public class BalanceController {
 
 	// 잔액 충전 API
