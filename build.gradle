@@ -17,16 +17,30 @@ repositories {
 
 
 dependencies {
+    // JDBC 드라이버
     implementation 'mysql:mysql-connector-java:8.0.33'
-    implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+    implementation "com.h2database:h2:2.2.222"
+
+    // Spring Boot 관련 의존성
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+    implementation "org.springframework.boot:spring-boot-starter-web-services"
+    implementation "org.springframework.boot:spring-boot-starter-security"
+    implementation "org.springframework.boot:spring-boot-starter-aop"
+    implementation "org.springframework.boot:spring-boot-starter-jdbc"
+    implementation "org.springframework.boot:spring-boot-starter-data-rest"
+    implementation "org.springframework.boot:spring-boot-starter-cache"
+    implementation "org.springframework.data:spring-data-relational"
+
+    // SpringDoc OpenAPI (Swagger)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // 테스트 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
 }
-
