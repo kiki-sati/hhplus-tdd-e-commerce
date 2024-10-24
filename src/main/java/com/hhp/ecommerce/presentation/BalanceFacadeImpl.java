@@ -1,36 +1,37 @@
 package com.hhp.ecommerce.presentation;
 
+import org.springframework.stereotype.Service;
+
 import com.hhp.ecommerce.application.service.UserService;
 import com.hhp.ecommerce.domain.model.BalanceHistory;
+import com.hhp.ecommerce.infra.persistence.BalanceHistoryRepository;
 import com.hhp.ecommerce.presentation.dto.BalanceRequest;
 import com.hhp.ecommerce.presentation.dto.BalanceResponse;
+
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
 public class BalanceFacadeImpl implements BalanceFacade {
 
-    private final UserService userService;
+	private final UserService userService;
+	private final BalanceHistoryRepository balanceHistoryRepository;
 
-    @Override
-    public BalanceResponse chargeBalance(BalanceRequest balanceRequest) {
-        var user = userService.findUserById(balanceRequest.getUserId());
-        BalanceHistory balanceHistory = BalanceHistory.create(user, balanceRequest.getAmount(), "CHARGE");
-        user.getBalanceHistory().add(balanceHistory);
+	@Override
+	public BalanceResponse chargeBalance(BalanceRequest balanceRequest) {
+		var user = userService.findUserById(balanceRequest.getUserId());
 
-        // 잔액 업데이트
-        user.increaseBalance(balanceRequest.getAmount());
-        userService.updateUser(user);
+		balanceHistoryRepository.save(BalanceHistory.create(user.getId(), balanceRequest.getAmount(), "CHARGE"));
 
-        return new BalanceResponse(user.getId(), user.getBalance());
+		user.increaseBalance(balanceRequest.getAmount());
+		userService.updateUser(user);
 
-        return null;
-    }
+		return new BalanceResponse(user.getId(), user.getBalance());
+	}
 
-    @Override
-    public BalanceResponse getBalance(Long userId) {
-        return null;
-    }
+	@Override
+	public BalanceResponse getBalance(Long userId) {
+		var user = userService.findUserById(userId);
+		return new BalanceResponse(user.getId(), user.getBalance());
+	}
 }

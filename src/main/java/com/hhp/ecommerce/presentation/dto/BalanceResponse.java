@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BalanceResponse {
-	private String userId;
+	private Long userId;
 	private int currentBalance;
 }
