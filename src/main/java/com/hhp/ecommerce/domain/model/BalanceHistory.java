@@ -19,35 +19,34 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "balance_history")
 public class BalanceHistory {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne
-	@JoinColumn(name = "user_id")
-	private User user;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-	@Column(nullable = false)
-	private int amount;
+    @Column(nullable = false)
+    private int amount;
 
-	@Column(name = "transaction_type", nullable = false, length = 50)
-	private String transactionType;
+    @Column(name = "transaction_type", nullable = false, length = 50)
+    private String transactionType;
 
-	@Column(name = "created_at")
-	private LocalDateTime createdAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-	@Column(name = "updated_at")
-	private LocalDateTime updatedAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-	private BalanceHistory(User user, int amount, String transactionType) {
-		this.user = user;
-		this.amount = amount;
-		this.transactionType = transactionType;
-		this.createdAt = LocalDateTime.now();
-		this.updatedAt = LocalDateTime.now();
-	}
+    private BalanceHistory(Long userId, int amount, String transactionType) {
+        this.userId = userId;
+        this.amount = amount;
+        this.transactionType = transactionType;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 
-	public static BalanceHistory create(User user, int amount, String transactionType) {
-		return new BalanceHistory(user, amount, transactionType);
-	}
+    public static BalanceHistory create(Long userId, int amount, String transactionType) {
+        return new BalanceHistory(userId, amount, transactionType);
+    }
 }

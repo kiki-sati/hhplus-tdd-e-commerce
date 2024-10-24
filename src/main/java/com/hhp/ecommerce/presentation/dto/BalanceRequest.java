@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BalanceRequest {
-	private String userId;
+	private Long userId;
 	private int amount;
 }
 
