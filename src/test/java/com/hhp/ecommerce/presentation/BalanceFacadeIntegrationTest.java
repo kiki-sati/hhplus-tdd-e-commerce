@@ -7,6 +7,7 @@ import com.hhp.ecommerce.infra.persistence.BalanceHistoryRepository;
 import com.hhp.ecommerce.infra.persistence.UserRepository;
 import com.hhp.ecommerce.presentation.dto.BalanceRequest;
 import com.hhp.ecommerce.presentation.dto.BalanceResponse;
+import com.hhp.ecommerce.presentation.facade.BalanceFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

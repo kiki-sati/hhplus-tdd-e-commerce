@@ -1,4 +1,4 @@
-package com.hhp.ecommerce.presentation;
+package com.hhp.ecommerce.presentation.facade;
 
 import com.hhp.ecommerce.presentation.dto.BalanceRequest;
 import com.hhp.ecommerce.presentation.dto.BalanceResponse;

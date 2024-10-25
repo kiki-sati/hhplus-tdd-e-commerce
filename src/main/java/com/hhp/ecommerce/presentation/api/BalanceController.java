@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hhp.ecommerce.presentation.BalanceFacade;
+import com.hhp.ecommerce.presentation.facade.BalanceFacade;
 import com.hhp.ecommerce.presentation.dto.BalanceRequest;
 import com.hhp.ecommerce.presentation.dto.BalanceResponse;
 
