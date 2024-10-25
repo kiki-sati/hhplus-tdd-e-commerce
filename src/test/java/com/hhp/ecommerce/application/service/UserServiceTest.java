@@ -28,7 +28,7 @@ class UserServiceTest {
 		Long userId = 1L;
 		int amount = 5000;
 
-		User user = User.create("테스트 사용자", 3000);
+		User user = User.create("테스트 사용자" , "test@naver.com", 3000);
 		Mockito.when(userRepository.findByIdWithLock(userId)).thenReturn(Optional.of(user));
 
 		// when & then
@@ -41,7 +41,7 @@ class UserServiceTest {
 		Long userId = 1L;
 		int amount = 1000;
 
-		User user = User.create("테스트 사용자" , 3000);
+		User user = User.create("테스트 사용자" , "test@naver.com", 3000);
 		Mockito.when(userRepository.findByIdWithLock(userId)).thenReturn(Optional.of(user));
 
 		// when
