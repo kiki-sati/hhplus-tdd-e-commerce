@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @AllArgsConstructor
+@Schema(description = "장바구니 요청 DTO")
 public class CartResponse {
     @Schema(description = "사용자 ID")
     private Long userId;
