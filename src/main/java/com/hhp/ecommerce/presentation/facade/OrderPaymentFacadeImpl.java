@@ -50,9 +50,15 @@ public class OrderPaymentFacadeImpl implements OrderPaymentFacade {
         }
 
         // Step 4: 결제 처리
-        var payment = paymentService.processPayment(orderId, idempotencyKey, totalPrice, user.getId());
-        userService.deductBalance(user.getId(), totalPrice);
-        orderService.updateOrderStatus(orderId, OrderStatus.SUCCESS.name());
-        return new PaymentResponse(true, "결제 및 주문 완료");
+        Payment payment = paymentService.processPayment(orderId, idempotencyKey, totalPrice, user.getId());
+
+        // 결제 상태 확인 및 처리
+        if (payment.getStatus() == PaymentStatus.SUCCESS) {
+            orderService.updateOrderStatus(orderId, OrderStatus.SUCCESS.name());
+            return new PaymentResponse(true, "결제 및 주문 완료");
+        } else {
+            orderService.updateOrderStatus(orderId, OrderStatus.FAILED.name());
+            return new PaymentResponse(false, "결제 실패");
+        }
     }
 }
