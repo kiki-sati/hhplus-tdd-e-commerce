@@ -15,7 +15,6 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
     // JDBC 드라이버
     implementation 'mysql:mysql-connector-java:8.0.33'
@@ -31,14 +30,17 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-data-rest"
 
-    // SpringDoc OpenAPI (Swagger)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+    implementation 'org.jetbrains:annotations:24.0.0'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // 테스트 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+}
+
+test {
+    useJUnitPlatform()
 }
