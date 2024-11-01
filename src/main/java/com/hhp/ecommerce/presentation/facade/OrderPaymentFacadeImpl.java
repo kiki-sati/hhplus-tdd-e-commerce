@@ -4,15 +4,13 @@ import com.hhp.ecommerce.application.service.OrderService;
 import com.hhp.ecommerce.application.service.PaymentService;
 import com.hhp.ecommerce.application.service.ProductService;
 import com.hhp.ecommerce.application.service.UserService;
-import com.hhp.ecommerce.domain.model.Order;
-import com.hhp.ecommerce.domain.model.OrderItem;
-import com.hhp.ecommerce.domain.model.OrderStatus;
-import com.hhp.ecommerce.domain.model.PaymentStatus;
+import com.hhp.ecommerce.domain.model.*;
 import com.hhp.ecommerce.presentation.dto.OrderRequest;
 import com.hhp.ecommerce.presentation.dto.PaymentResponse;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 
 import java.util.stream.Collectors;
 
@@ -25,7 +23,7 @@ public class OrderPaymentFacadeImpl implements OrderPaymentFacade {
     private final ProductService productService;
     private final UserService userService;
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public PaymentResponse createOrderAndProcessPayment(OrderRequest orderRequest, String idempotencyKey) {
 

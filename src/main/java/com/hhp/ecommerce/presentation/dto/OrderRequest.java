@@ -7,10 +7,12 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "주문 요청 DTO")
@@ -23,6 +25,7 @@ public class OrderRequest {
     private List<OrderItem> items;
 
     @Getter
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class OrderItem {
