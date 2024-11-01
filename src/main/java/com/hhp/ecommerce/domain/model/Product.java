@@ -48,12 +48,12 @@ public class Product {
 		return new Product(name, price, stock);
 	}
 
-	public void reduceStock(int quantity) {
-		if (stock < quantity) {
-			throw new IllegalArgumentException("재고가 부족합니다.");
-		}
-		this.stock -= quantity;
-		this.updatedAt = LocalDateTime.now();
+	public synchronized void reduceStock(int quantity) {
+	    if (this.stock < quantity) {
+	        throw new IllegalArgumentException("재고가 부족합니다.");
+	    }
+	    this.stock -= quantity;
+	    this.updatedAt = LocalDateTime.now();
 	}
 
 	public void increaseStock(int quantity) {
